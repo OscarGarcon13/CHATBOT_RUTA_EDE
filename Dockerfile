@@ -1,16 +1,20 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
-# Evita que Python genere archivos .pyc y fuerza la salida de logs en tiempo real
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
 
-# Copiar e instalar dependencias primero
+# Instalar dependencias del sistema necesarias para ortools y paquetes C++
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgomp1 \
+    && rm -rf /var/lib/apt-get/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar el resto del código del proyecto
 COPY . .
 
-# Comando de inicio del bot
-CMD ["python", "main.py"]
+# Usar ejecutable directo
+CMD ["python", "-u", "main.py"]
