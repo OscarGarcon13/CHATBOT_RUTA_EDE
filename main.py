@@ -1,7 +1,5 @@
 """
 Bot de Telegram - Optimizador de Rutas
-
-holaaa
 ========================================
 Mejoras respecto a la versión original:
   1. Credenciales vía variables de entorno (nunca hardcodeadas).
