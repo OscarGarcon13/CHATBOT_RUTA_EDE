@@ -1,4 +1,7 @@
 """
+
+ahora si
+
 Bot de Telegram - Optimizador de Rutas
 ========================================
 Mejoras respecto a la versión original:
@@ -316,17 +319,6 @@ def calcular_secuencia_fija_desde_origen(matriz_duracion: list, ida_y_vuelta: bo
     return orden_optimo
 
 
-def construir_url_waze(punto: dict) -> str:
-    """
-    Waze, a diferencia de Google Maps, no tiene un esquema de URL público
-    para encadenar varias paradas en una sola ruta -su deep link solo acepta
-    UN destino a la vez-. Por eso generamos un link de Waze por cada parada
-    individual: el usuario toca la que le toca navegar en ese momento y Waze
-    la abre directo, en vez de intentar (sin éxito) mandar la ruta completa.
-    """
-    return f"https://waze.com/ul?ll={punto['lat']}%2C{punto['lon']}&navigate=yes"
-
-
 def construir_url_maps_ruta_optimizada(origen: dict, puntos_ordenados: list, ida_y_vuelta: bool) -> str:
     """
     Arma el link de Google Maps Directions para la ruta calculada por
@@ -492,15 +484,14 @@ async def procesar_origen_en_vivo(update: Update, context: ContextTypes.DEFAULT_
     resumen = "🧭 <b>Ruta recalculada desde tu ubicación actual</b> (vecino más cercano):\n\n"
     resumen += f"🏁 Inicio: {origen['nombre']} ({lat:.4f}, {lon:.4f})\n\n"
     for idx, p in enumerate(ruta_ordenada, start=1):
-        waze_url = construir_url_waze(p)
-        resumen += f"{idx}. 📍 <a href='{waze_url}'>{p['nombre']}</a> — {p['distancia_km']:.2f} km desde el punto anterior\n"
+        resumen += f"{idx}. 📍 {p['nombre']} — {p['distancia_km']:.2f} km desde el punto anterior\n"
 
     distancia_total_km = sum(p["distancia_km"] for p in ruta_ordenada)
     resumen += f"\n📏 Distancia total aproximada (línea recta): {distancia_total_km:.2f} km\n"
 
     maps_url = construir_url_maps_desde_origen(origen, ruta_ordenada)
     resumen += f"\n🗺️ <b><a href='{maps_url}'>👉 TOCAR AQUÍ PARA INICIAR LA RUTA EN MAPS</a></b>\n\n"
-    resumen += "<i>Cada parada también abre directo en Waze (un destino a la vez). Comparte tu ubicación en vivo de nuevo (o deja que se actualice) para recalcular desde tu nueva posición.</i>"
+    resumen += "<i>Comparte tu ubicación en vivo de nuevo (o deja que se actualice) para recalcular desde tu nueva posición.</i>"
 
     await context.bot.send_message(chat_id=chat_id, text=resumen, parse_mode="HTML", disable_web_page_preview=False)
 
@@ -782,13 +773,11 @@ async def recibir_tipo_ruta(update: Update, context: ContextTypes.DEFAULT_TYPE):
         resumen = f"✅ <b>Ruta Óptima desde tu ubicación</b> ({tipo_label}):\n\n"
         resumen += f"🏁 Punto de partida: {origen['nombre']}\n"
         for idx, p in enumerate(puntos_ordenados, start=1):
-            waze_url = construir_url_waze(p)
-            resumen += f"{idx}. 📍 <a href='{waze_url}'>{p['nombre']}</a>\n"
+            resumen += f"{idx}. 📍 {p['nombre']}\n"
         if ida_y_vuelta:
             resumen += f"{len(puntos_ordenados) + 1}. 🏁 Regreso a: {origen['nombre']}\n"
 
         resumen += f"\n🗺️ <b><a href='{maps_url}'>👉 TOCAR AQUÍ PARA INICIAR LA RUTA COMPLETA EN MAPS</a></b>"
-        resumen += "\n<i>Cada parada de la lista de arriba también abre directo en Waze (un destino a la vez, tócala cuando vayas hacia allá).</i>"
 
         await update.message.reply_text(resumen, parse_mode="HTML", disable_web_page_preview=False)
 
